@@ -5,6 +5,7 @@ const createError = require('http-errors');
 const env = require('./config/env');
 const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
+const messageRoutes = require('./routes/messageRoutes');
 const { standardRateLimiter } = require('./middleware/rateLimiters');
 const errorHandler = require('./middleware/errorHandler');
 
@@ -28,6 +29,7 @@ app.get('/health', (_req, res) => {
 
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/users', userRoutes);
+app.use('/api/v1/messages', messageRoutes);
 
 app.use((_req, _res, next) => {
   next(createError(404, 'Route not found'));
