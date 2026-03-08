@@ -1,6 +1,7 @@
 const { validate: isUuid } = require('uuid');
 const messageService = require('../services/messageService');
 
+async function getConversation(req, res) {
 const getConversation = async (req, res, next) => {
   try {
     const { userId } = req.params;
@@ -24,6 +25,9 @@ const getConversation = async (req, res, next) => {
     return res.json({ messages: result.rows });
   } catch (err) {
     console.error('Conversation fetch error:', err);
+    return res.status(500).json({ error: { message: 'Internal server error' } });
+  }
+}
     if (err.status) {
       return next(err);
     }

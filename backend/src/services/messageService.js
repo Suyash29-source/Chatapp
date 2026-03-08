@@ -95,26 +95,12 @@ const getConversation = async ({ userId, peerUserId, limit, cursor }) => {
   const { cursorCreatedAt, cursorId } = parseCursor(cursor);
 
   return messageModel.listConversation({
-  const messages = await messageModel.listConversation({
     userId,
     peerUserId,
     limit: normalizedLimit,
     cursorCreatedAt,
     cursorId
   });
-
-  const nextCursor =
-    messages.length === normalizedLimit
-      ? `${messages[messages.length - 1].created_at.toISOString()}|${messages[messages.length - 1].id}`
-      : null;
-
-  return {
-    messages,
-    pagination: {
-      limit: normalizedLimit,
-      nextCursor
-    }
-  };
 };
 
 module.exports = {
