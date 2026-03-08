@@ -40,6 +40,9 @@ const listConversation = async ({ userId, peerUserId, limit, cursorCreatedAt, cu
   if (cursorCreatedAt && cursorId) {
     params.push(cursorCreatedAt, cursorId);
     cursorClause = ' AND (created_at, id) < ($4::timestamptz, $5::uuid)';
+    cursorClause = `
+      AND (created_at, id) < ($4::timestamptz, $5::uuid)
+    `;
   }
 
   const query = `
@@ -50,11 +53,15 @@ const listConversation = async ({ userId, peerUserId, limit, cursorCreatedAt, cu
       OR
       (sender_id = $2 AND receiver_id = $1)
     )${cursorClause}
+    )
+    ${cursorClause}
     ORDER BY created_at DESC, id DESC
     LIMIT $3
   `;
 
   return pool.query(query, params);
+  const { rows } = await pool.query(query, params);
+  return rows;
 };
 
 module.exports = {

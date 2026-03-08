@@ -1,5 +1,6 @@
 const createError = require('http-errors');
 const { validate: isUuid, v4: uuidv4 } = require('uuid');
+const { v4: uuidv4 } = require('uuid');
 const { redisClient } = require('../config/redis');
 const messageModel = require('../models/messageModel');
 const userModel = require('../models/userModel');
@@ -69,6 +70,7 @@ const parseCursor = (cursor) => {
   }
 
   if (Number.isNaN(Date.parse(createdAt))) {
+  if (!createdAt || !id) {
     throw createError(400, 'Invalid cursor format');
   }
 
@@ -93,12 +95,26 @@ const getConversation = async ({ userId, peerUserId, limit, cursor }) => {
   const { cursorCreatedAt, cursorId } = parseCursor(cursor);
 
   return messageModel.listConversation({
+  const messages = await messageModel.listConversation({
     userId,
     peerUserId,
     limit: normalizedLimit,
     cursorCreatedAt,
     cursorId
   });
+
+  const nextCursor =
+    messages.length === normalizedLimit
+      ? `${messages[messages.length - 1].created_at.toISOString()}|${messages[messages.length - 1].id}`
+      : null;
+
+  return {
+    messages,
+    pagination: {
+      limit: normalizedLimit,
+      nextCursor
+    }
+  };
 };
 
 module.exports = {

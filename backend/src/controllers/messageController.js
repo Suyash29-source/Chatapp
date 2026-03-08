@@ -28,6 +28,9 @@ const getConversation = async (req, res, next) => {
       return next(err);
     }
     return res.status(500).json({ error: { message: 'Internal server error' } });
+    res.status(200).json(result);
+  } catch (err) {
+    next(err);
   }
 };
 
