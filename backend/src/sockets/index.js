@@ -29,6 +29,25 @@ const initializeSocket = (httpServer, corsOrigin) => {
       credentials: true
     }
   });
+
+  io.use(async (socket, next) => {
+    try {
+      const token = extractToken(socket);
+      if (!token) {
+        return next(new Error('Unauthorized'));
+      }
+
+      const payload = verifyAccessToken(token);
+      if (!payload?.sub || payload.type !== 'access') {
+        return next(new Error('Unauthorized'));
+      }
+
+      socket.user = { id: payload.sub };
+      return next();
+    } catch (_err) {
+      return next(new Error('Unauthorized'));
+    }
+  });
   
   io.use((socket, next) => {
   try {

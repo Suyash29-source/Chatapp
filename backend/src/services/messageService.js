@@ -1,4 +1,5 @@
 const createError = require('http-errors');
+const { validate: isUuid, v4: uuidv4 } = require('uuid');
 const { v4: uuidv4 } = require('uuid');
 const { redisClient } = require('../config/redis');
 const messageModel = require('../models/messageModel');
@@ -64,6 +65,11 @@ const parseCursor = (cursor) => {
   }
 
   const [createdAt, id] = cursor.split('|');
+  if (!createdAt || !id || !isUuid(id)) {
+    throw createError(400, 'Invalid cursor format');
+  }
+
+  if (Number.isNaN(Date.parse(createdAt))) {
   if (!createdAt || !id) {
     throw createError(400, 'Invalid cursor format');
   }
@@ -72,6 +78,14 @@ const parseCursor = (cursor) => {
 };
 
 const getConversation = async ({ userId, peerUserId, limit, cursor }) => {
+  if (!isUuid(peerUserId)) {
+    throw createError(400, 'userId must be a valid UUID');
+  }
+
+  if (userId === peerUserId) {
+    throw createError(400, 'Conversation with self is not supported');
+  }
+
   const peer = await userModel.findUserById(peerUserId);
   if (!peer) {
     throw createError(404, 'Conversation user not found');
@@ -80,6 +94,7 @@ const getConversation = async ({ userId, peerUserId, limit, cursor }) => {
   const normalizedLimit = Math.min(Math.max(Number(limit) || 20, 1), 100);
   const { cursorCreatedAt, cursorId } = parseCursor(cursor);
 
+  return messageModel.listConversation({
   const messages = await messageModel.listConversation({
     userId,
     peerUserId,
