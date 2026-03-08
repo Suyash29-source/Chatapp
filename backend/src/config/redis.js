@@ -4,6 +4,7 @@ const env = require('./env');
 const redisClient = createClient({
   url: env.redisUrl,
   socket: {
+    tls: true,
     reconnectStrategy(retries) {
       return Math.min(retries * 50, 1000);
     }
